@@ -1,0 +1,20 @@
+[
+  {
+    "id": "HimalayanID",
+    "name": "Himalayan Cat",
+    "description": "Persian–Siamese hybrid breed known for its long coat, color-point pattern, and calm, affectionate personality.",
+    "image": "https://catpedia.net/wp-content/uploads/2025/09/Himalayan-Cat-Featured.png"
+  },
+  {
+    "id": "KinkalowID",
+    "name": "Kinkalow Cat",
+    "description": "Rare hybrid breed combining Munchkin short legs with American Curl ears and a playful personality.",
+    "image": "https://catpedia.net/wp-content/uploads/2025/09/Kinkalow-cat-features.png"
+  },
+  {
+    "id": "SnowshoeID",
+    "name": "Snowshoe Cat",
+    "description": "Siamese-derived breed known for its white “snowshoe” paws, blue eyes, and friendly, social personality.",
+    "image": "https://catpedia.net/wp-content/uploads/2025/10/snowshoe-cat-breed-inline.png"
+  }
+]
