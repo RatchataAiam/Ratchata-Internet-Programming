@@ -1,10 +1,186 @@
-import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useAuth } from '../context-auth';
-const API='http://119.59.102.161:3099/api';
-const C={bg:'#FFF8FA',white:'#fff',ink:'#2D2025',muted:'#7E6870',pink:'#E75480',pinkDark:'#C83D68',border:'#EBCFD8',soft:'#FFF0F4'};
-export default function Dashboard(){const {user,token}=useAuth();const [products,setProducts]=useState<any[]>([]);const [orders,setOrders]=useState<any[]>([]);const [loading,setLoading]=useState(true);useEffect(()=>{if(user?.role==='admin')Promise.all([fetch(API+'/products')]).then(async([p])=>{setProducts(await p.json());setOrders([])}).catch(()=>{}).finally(()=>setLoading(false))},[user]);if(!user||user.role!=='admin')return null;const stock=products.reduce((a,p)=>a+Number(p.stock_quantity||0),0);const value=products.reduce((a,p)=>a+Number(p.price||0)*Number(p.stock_quantity||0),0);return <SafeAreaView style={s.container}><View style={s.header}><TouchableOpacity onPress={()=>router.back()}><Ionicons name="arrow-back" size={24} color={C.pink}/></TouchableOpacity><Text style={s.title}>Admin Dashboard</Text><Ionicons name="settings-outline" size={22} color={C.pink}/></View><ScrollView contentContainerStyle={s.content}><Text style={s.heading}>ภาพรวมระบบ</Text><Text style={s.sub}>ข้อมูลอ้างอิงจาก Products / Orders ตาม SQL</Text>{loading?<ActivityIndicator size="large" color={C.pink} style={{margin:40}}/>:<><View style={s.grid}><Stat icon="cube-outline" label="สินค้า" value={products.length}/><Stat icon="layers-outline" label="สต็อกรวม" value={stock}/><Stat icon="cash-outline" label="มูลค่าสต็อก" value={`฿${value.toLocaleString()}`}/><Stat icon="receipt-outline" label="คำสั่งซื้อ" value={orders.length||'—'}/></View><View style={s.actions}><TouchableOpacity style={s.action} onPress={()=>router.push('/manage-products')}><Ionicons name="create-outline" size={24} color={C.pink}/><Text style={s.actionTitle}>จัดการสินค้า</Text><Text style={s.actionSub}>เพิ่ม แก้ไข ลบ Products</Text></TouchableOpacity><TouchableOpacity style={s.action} onPress={()=>router.push('/manage-breeds')}><Ionicons name="paw-outline" size={24} color={C.pink}/><Text style={s.actionTitle}>จัดการสายพันธุ์</Text><Text style={s.actionSub}>เพิ่ม แก้ไข ลบ Breeds</Text></TouchableOpacity><TouchableOpacity style={s.action} onPress={()=>router.push('/manage-cats')}><Ionicons name="paw" size={24} color={C.pink}/><Text style={s.actionTitle}>จัดการแมวที่ขาย</Text><Text style={s.actionSub}>เพิ่ม แก้ไข สถานะ ลบ Cats</Text></TouchableOpacity><TouchableOpacity style={s.action} onPress={()=>router.push('/price-clusters')}><Ionicons name="analytics-outline" size={24} color={C.pink}/><Text style={s.actionTitle}>AI/ML Price Clustering</Text><Text style={s.actionSub}>วิเคราะห์ Low / Medium / High</Text></TouchableOpacity></View></>}</ScrollView></SafeAreaView>}
-function Stat({icon,label,value}:{icon:any;label:string;value:any}){return <View style={s.stat}><Ionicons name={icon} size={22} color={C.pink}/><Text style={s.statLabel}>{label}</Text><Text style={s.statValue}>{value}</Text></View>}
-const s=StyleSheet.create({container:{flex:1,backgroundColor:C.bg},header:{height:68,paddingHorizontal:20,backgroundColor:C.white,borderBottomWidth:1,borderColor:C.border,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},title:{fontSize:20,fontWeight:'900',color:C.ink},content:{width:'100%',maxWidth:1000,alignSelf:'center',padding:20},heading:{fontSize:26,fontWeight:'900',color:C.ink},sub:{fontSize:12,color:C.muted,marginTop:4,marginBottom:18},grid:{flexDirection:'row',flexWrap:'wrap',gap:12},stat:{flexGrow:1,minWidth:190,backgroundColor:C.white,borderWidth:1,borderColor:C.border,padding:18},statLabel:{fontSize:12,color:C.muted,marginTop:10,fontWeight:'700'},statValue:{fontSize:23,fontWeight:'900',color:C.pinkDark,marginTop:3},actions:{marginTop:20,flexDirection:'row',flexWrap:'wrap',gap:12},action:{flex:1,minWidth:280,backgroundColor:C.white,borderWidth:1,borderColor:C.border,padding:20},actionTitle:{fontSize:16,fontWeight:'900',color:C.ink,marginTop:10},actionSub:{fontSize:12,color:C.muted,marginTop:4}});
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useAuth } from "../context-auth";
+
+// URL ของ API และชุดสีที่ใช้ร่วมกันในหน้าแดชบอร์ดผู้ดูแลระบบ
+const API = "http://119.59.102.161:3099/api";
+const C = {
+  bg: "#FFF8FA",
+  white: "#fff",
+  ink: "#2D2025",
+  muted: "#7E6870",
+  pink: "#E75480",
+  pinkDark: "#C83D68",
+  border: "#EBCFD8",
+  soft: "#FFF0F4",
+};
+export default function Dashboard() {
+  const { user, token } = useAuth();
+  const [products, setProducts] = useState<any[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (user?.role === "admin")
+      Promise.all([fetch(API + "/products")])
+        .then(async ([p]) => {
+          setProducts(await p.json());
+          setOrders([]);
+        })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+  }, [user]);
+  if (!user || user.role !== "admin") return null;
+  const stock = products.reduce((a, p) => a + Number(p.stock_quantity || 0), 0);
+  const value = products.reduce(
+    (a, p) => a + Number(p.price || 0) * Number(p.stock_quantity || 0),
+    0,
+  );
+  return (
+    <SafeAreaView style={s.container}>
+      <View style={s.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color={C.pink} />
+        </TouchableOpacity>
+        <Text style={s.title}>Admin Dashboard</Text>
+        <Ionicons name="settings-outline" size={22} color={C.pink} />
+      </View>
+      <ScrollView contentContainerStyle={s.content}>
+        <Text style={s.heading}>ภาพรวมระบบ</Text>
+        <Text style={s.sub}>ข้อมูลอ้างอิงจาก Products / Orders ตาม SQL</Text>
+        {loading ? (
+          <ActivityIndicator
+            size="large"
+            color={C.pink}
+            style={{ margin: 40 }}
+          />
+        ) : (
+          <>
+            <View style={s.grid}>
+              <Stat
+                icon="cube-outline"
+                label="สินค้า"
+                value={products.length}
+              />
+              <Stat icon="layers-outline" label="สต็อกรวม" value={stock} />
+              <Stat
+                icon="cash-outline"
+                label="มูลค่าสต็อก"
+                value={`฿${value.toLocaleString()}`}
+              />
+              <Stat
+                icon="receipt-outline"
+                label="คำสั่งซื้อ"
+                value={orders.length || "—"}
+              />
+            </View>
+            <View style={s.actions}>
+              <TouchableOpacity
+                style={s.action}
+                onPress={() => router.push("/manage-products")}
+              >
+                <Ionicons name="create-outline" size={24} color={C.pink} />
+                <Text style={s.actionTitle}>จัดการสินค้า</Text>
+                <Text style={s.actionSub}>เพิ่ม แก้ไข ลบ Products</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.action}
+                onPress={() => router.push("/manage-breeds")}
+              >
+                <Ionicons name="paw-outline" size={24} color={C.pink} />
+                <Text style={s.actionTitle}>จัดการสายพันธุ์</Text>
+                <Text style={s.actionSub}>เพิ่ม แก้ไข ลบ Breeds</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.action}
+                onPress={() => router.push("/manage-cats")}
+              >
+                <Ionicons name="paw" size={24} color={C.pink} />
+                <Text style={s.actionTitle}>จัดการแมวที่ขาย</Text>
+                <Text style={s.actionSub}>เพิ่ม แก้ไข สถานะ ลบ Cats</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.action}
+                onPress={() => router.push("/price-clusters")}
+              >
+                <Ionicons name="analytics-outline" size={24} color={C.pink} />
+                <Text style={s.actionTitle}>AI/ML Price Clustering</Text>
+                <Text style={s.actionSub}>วิเคราะห์ Low / Medium / High</Text>
+              </TouchableOpacity>
+            </View>
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+function Stat({
+  icon,
+  label,
+  value,
+}: {
+  icon: any;
+  label: string;
+  value: any;
+}) {
+  return (
+    <View style={s.stat}>
+      <Ionicons name={icon} size={22} color={C.pink} />
+      <Text style={s.statLabel}>{label}</Text>
+      <Text style={s.statValue}>{value}</Text>
+    </View>
+  );
+}
+const s = StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.bg },
+  header: {
+    height: 68,
+    paddingHorizontal: 20,
+    backgroundColor: C.white,
+    borderBottomWidth: 1,
+    borderColor: C.border,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  title: { fontSize: 20, fontWeight: "900", color: C.ink },
+  content: { width: "100%", maxWidth: 1000, alignSelf: "center", padding: 20 },
+  heading: { fontSize: 26, fontWeight: "900", color: C.ink },
+  sub: { fontSize: 12, color: C.muted, marginTop: 4, marginBottom: 18 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  stat: {
+    flexGrow: 1,
+    minWidth: 190,
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 18,
+  },
+  statLabel: { fontSize: 12, color: C.muted, marginTop: 10, fontWeight: "700" },
+  statValue: {
+    fontSize: 23,
+    fontWeight: "900",
+    color: C.pinkDark,
+    marginTop: 3,
+  },
+  actions: { marginTop: 20, flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  action: {
+    flex: 1,
+    minWidth: 280,
+    backgroundColor: C.white,
+    borderWidth: 1,
+    borderColor: C.border,
+    padding: 20,
+  },
+  actionTitle: { fontSize: 16, fontWeight: "900", color: C.ink, marginTop: 10 },
+  actionSub: { fontSize: 12, color: C.muted, marginTop: 4 },
+});

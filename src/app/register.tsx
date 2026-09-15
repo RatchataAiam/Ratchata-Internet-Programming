@@ -44,7 +44,7 @@ const notify = (title: string, message?: string, onDismiss?: () => void) => {
     Alert.alert(
       title,
       message,
-      onDismiss ? [{ text: "OK", onPress: onDismiss }] : undefined
+      onDismiss ? [{ text: "OK", onPress: onDismiss }] : undefined,
     );
   }
 };
@@ -75,13 +75,15 @@ export default function RegisterScreen() {
 
   const validate = (): string | null => {
     if (!form.username.trim()) return "กรุณากรอก Username";
-    if (form.username.trim().length < 3) return "Username ต้องมีอย่างน้อย 3 ตัวอักษร";
+    if (form.username.trim().length < 3)
+      return "Username ต้องมีอย่างน้อย 3 ตัวอักษร";
     if (!form.email.trim()) return "กรุณากรอกอีเมล";
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailPattern.test(form.email.trim())) return "รูปแบบอีเมลไม่ถูกต้อง";
     if (!form.password) return "กรุณากรอกรหัสผ่าน";
     if (form.password.length < 6) return "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร";
-    if (form.password !== form.confirmPassword) return "รหัสผ่านทั้งสองช่องไม่ตรงกัน";
+    if (form.password !== form.confirmPassword)
+      return "รหัสผ่านทั้งสองช่องไม่ตรงกัน";
     return null;
   };
 
@@ -117,7 +119,7 @@ export default function RegisterScreen() {
     } catch (error) {
       notify(
         "เกิดข้อผิดพลาด",
-        error instanceof Error ? error.message : "ไม่สามารถสมัครสมาชิกได้"
+        error instanceof Error ? error.message : "ไม่สามารถสมัครสมาชิกได้",
       );
     } finally {
       setLoading(false);
@@ -136,23 +138,36 @@ export default function RegisterScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
             <Ionicons name="arrow-back" size={20} color={COLORS.text} />
           </TouchableOpacity>
 
           <View style={styles.brandBlock}>
             <View style={styles.logoCircle}>
-              <Ionicons name="person-add-outline" size={28} color={COLORS.primary} />
+              <Ionicons
+                name="person-add-outline"
+                size={28}
+                color={COLORS.primary}
+              />
             </View>
             <Text style={styles.brandTitle}>Create Account</Text>
-            <Text style={styles.brandSubtitle}>สมัครสมาชิกเพื่อเริ่มใช้งานระบบ</Text>
+            <Text style={styles.brandSubtitle}>
+              สมัครสมาชิกเพื่อเริ่มใช้งานระบบ
+            </Text>
           </View>
 
           <View style={styles.card}>
             <View style={styles.formGroup}>
               <Text style={styles.label}>Username</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="person-outline" size={18} color={COLORS.textSecondary} />
+                <Ionicons
+                  name="person-outline"
+                  size={18}
+                  color={COLORS.textSecondary}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="Choose a username"
@@ -167,7 +182,11 @@ export default function RegisterScreen() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Email</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="mail-outline" size={18} color={COLORS.textSecondary} />
+                <Ionicons
+                  name="mail-outline"
+                  size={18}
+                  color={COLORS.textSecondary}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="you@example.com"
@@ -183,7 +202,11 @@ export default function RegisterScreen() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Password</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={18} color={COLORS.textSecondary} />
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={18}
+                  color={COLORS.textSecondary}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="At least 6 characters"
@@ -192,7 +215,9 @@ export default function RegisterScreen() {
                   onChangeText={(v) => updateForm("password", v)}
                   secureTextEntry={!showPassword}
                 />
-                <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>
+                <TouchableOpacity
+                  onPress={() => setShowPassword((prev) => !prev)}
+                >
                   <Ionicons
                     name={showPassword ? "eye-off-outline" : "eye-outline"}
                     size={18}
@@ -205,7 +230,11 @@ export default function RegisterScreen() {
             <View style={styles.formGroup}>
               <Text style={styles.label}>Confirm Password</Text>
               <View style={styles.inputWrapper}>
-                <Ionicons name="lock-closed-outline" size={18} color={COLORS.textSecondary} />
+                <Ionicons
+                  name="lock-closed-outline"
+                  size={18}
+                  color={COLORS.textSecondary}
+                />
                 <TextInput
                   style={styles.input}
                   placeholder="Re-enter your password"
@@ -214,9 +243,13 @@ export default function RegisterScreen() {
                   onChangeText={(v) => updateForm("confirmPassword", v)}
                   secureTextEntry={!showConfirmPassword}
                 />
-                <TouchableOpacity onPress={() => setShowConfirmPassword((prev) => !prev)}>
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword((prev) => !prev)}
+                >
                   <Ionicons
-                    name={showConfirmPassword ? "eye-off-outline" : "eye-outline"}
+                    name={
+                      showConfirmPassword ? "eye-off-outline" : "eye-outline"
+                    }
                     size={18}
                     color={COLORS.textSecondary}
                   />

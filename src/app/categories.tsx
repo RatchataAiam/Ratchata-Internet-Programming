@@ -1,4 +1,4 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -15,243 +15,184 @@ import {
   View,
 } from "react-native";
 
-const API_BASE_URL = "http://119.59.102.161:3099/api/products";
-
+const API = "http://119.59.102.161:3099/api/products";
 const COLORS = {
-  primary: "#7C5CFF",
-  background: "#080A12",
-  cardBg: "#111522",
-  border: "#2A3142",
-  text: "#E5E7F0",
-  textSecondary: "#8F99AA",
+  primary: "#E75480",
+  background: "#FFF8FA",
+  card: "#FFFFFF",
+  border: "#EBCFD8",
+  text: "#2D2025",
+  muted: "#7E6870",
 };
 
-interface Product {
-  id: number;
-  productCode: string;
-  productName: string;
-  brand: string;
-  category: string;
+type Product = {
+  product_id: number;
+  product_name: string;
+  category?: string | null;
   price: number;
-  stock: number;
-  color: string;
-  storage: string;
-  ram: string;
-  image: string;
-  description: string;
-  status: string;
-}
+  stock_quantity: number;
+  image_url?: string | null;
+};
 
-interface BrandGroup {
-  brandName: string;
-  itemCount: number;
+type CategoryGroup = {
+  categoryName: string;
   products: Product[];
-  sampleImage: string;
-}
+};
 
 export default function CategoriesScreen() {
   const params = useLocalSearchParams();
   const userRole = (params.role as "admin" | "user") || null;
   const userToken = (params.token as string) || "";
-
   const [loading, setLoading] = useState(false);
-  const [brandGroups, setBrandGroups] = useState<BrandGroup[]>([]);
-  const [selectedBrand, setSelectedBrand] = useState<BrandGroup | null>(null);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [groups, setGroups] = useState<CategoryGroup[]>([]);
+  const [selectedGroup, setSelectedGroup] = useState<CategoryGroup | null>(
+    null,
+  );
 
-  const fetchProductsAndGroup = async () => {
+  // จัดกลุ่ม Products ตามหมวดหมู่ เพื่อให้ข้อมูลตรงกับฐานข้อมูลเสมอ
+  const loadCategories = async () => {
     setLoading(true);
     try {
-      const response = await fetch(API_BASE_URL);
-      if (!response.ok) throw new Error("Fetch error");
-      const data: Product[] = await response.json();
+      const response = await fetch(API);
+      if (!response.ok) throw new Error("โหลดข้อมูลสินค้าไม่สำเร็จ");
+      const products: Product[] = await response.json();
+      const grouped = new Map<string, Product[]>();
 
-      const groupsMap: { [key: string]: Product[] } = {};
-const displayNames: { [key: string]: string } = {};
+      products.forEach((product) => {
+        const category = product.category?.trim() || "ไม่ระบุหมวดหมู่";
+        const current = grouped.get(category) || [];
+        grouped.set(category, [...current, product]);
+      });
 
-data.forEach((product) => {
-  const raw = product.brand?.trim() || "Unnamed Brand";
-  const key = raw.toLowerCase(); // ใช้ตัวพิมพ์เล็กเป็น key สำหรับจัดกลุ่ม
-
-  if (!groupsMap[key]) {
-    groupsMap[key] = [];
-    displayNames[key] = raw; // เก็บชื่อที่เจอครั้งแรกไว้แสดงผล
-  }
-  groupsMap[key].push(product);
-});
-
-const formattedGroups: BrandGroup[] = Object.keys(groupsMap).map((key) => ({
-  brandName: displayNames[key],
-  itemCount: groupsMap[key].length,
-  products: groupsMap[key],
-  sampleImage: groupsMap[key][0]?.image || "",
-}));
-
-      setBrandGroups(formattedGroups);
+      setGroups(
+        Array.from(grouped, ([categoryName, categoryProducts]) => ({
+          categoryName,
+          products: categoryProducts,
+        })),
+      );
     } catch (error) {
-      console.error("Error fetching categories:", error);
+      console.error("Error loading product categories:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProductsAndGroup();
+    loadCategories();
   }, []);
 
-  const openBrandProducts = (brandGroup: BrandGroup) => {
-    setSelectedBrand(brandGroup);
-    setDetailModalVisible(true);
-  };
-
-  // ฟังก์ชันกดเลือกแบรนด์หรือสินค้าเพื่อไปยังหน้า Products
-  const goToProductPage = (searchKeyword?: string) => {
-    setDetailModalVisible(false);
+  const goToProducts = (search = "") => {
     router.push({
-      pathname: "/", // นำทางไปหน้า สินค้า (Products)
-      params: {
-        token: userToken,
-        role: userRole,
-        search: searchKeyword !== undefined ? searchKeyword : selectedBrand?.brandName || "",
-      },
+      pathname: "/",
+      params: { token: userToken, role: userRole, search },
     });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#080A12" />
-
-      {/* Header */}
+      <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Categories / Brands</Text>
-        <TouchableOpacity style={styles.refreshBtn} onPress={fetchProductsAndGroup}>
-          <Ionicons name="refresh" size={20} color={COLORS.primary} />
+        <Text style={styles.headerTitle}>หมวดหมู่สินค้า</Text>
+        <TouchableOpacity onPress={loadCategories}>
+          <Ionicons name="refresh" size={21} color={COLORS.primary} />
         </TouchableOpacity>
       </View>
 
-      {/* Brand List */}
       {loading ? (
-        <View style={styles.loadingContainer}>
+        <View style={styles.loading}>
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       ) : (
         <FlatList
-          data={brandGroups}
-          keyExtractor={(item) => item.brandName}
-          contentContainerStyle={styles.listContent}
+          data={groups}
+          keyExtractor={(item) => item.categoryName}
+          contentContainerStyle={styles.list}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={styles.brandCard}
-              onPress={() => openBrandProducts(item)}
+              style={styles.categoryCard}
+              onPress={() => setSelectedGroup(item)}
             >
-              <View style={styles.brandInfo}>
-                <Text style={styles.brandNameText}>{item.brandName}</Text>
-                <Text style={styles.itemCountText}>{item.itemCount} Products available</Text>
+              <View>
+                <Text style={styles.categoryName}>{item.categoryName}</Text>
+                <Text style={styles.categoryCount}>
+                  {item.products.length} รายการ
+                </Text>
               </View>
-              <View style={styles.arrowBadge}>
-                <Ionicons name="chevron-forward" size={18} color="#8B5CF6" />
-              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={COLORS.primary}
+              />
             </TouchableOpacity>
           )}
         />
       )}
 
-      {/* Bottom Navigation Bar */}
       <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => goToProducts()}>
+          <Ionicons name="cube-outline" size={22} color={COLORS.primary} />
+          <Text style={styles.navText}>สินค้า</Text>
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() =>
-            router.push({
-              pathname: "/home",
-              params: { token: userToken, role: userRole },
-            })
-          }
+          onPress={() => router.push("/cart")}
         >
-          <Ionicons name="home-outline" size={22} color="#8F99AA" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-
-        {userRole === "admin" && (
-          <TouchableOpacity
-            style={styles.navItem}
-            onPress={() =>
-              router.push({
-                pathname: "/",
-                params: { token: userToken, role: userRole },
-              })
-            }
-          >
-            <Ionicons name="add-outline" size={24} color="#8F99AA" />
-            <Text style={styles.navText}>Add</Text>
-          </TouchableOpacity>
-        )}
-
-        <TouchableOpacity style={styles.navItem} onPress={() => goToProductPage("")}>
-          <MaterialIcons name="inventory-2" size={22} color="#8F99AA" />
-          <Text style={styles.navText}>Products</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="folder" size={22} color={COLORS.primary} />
-          <Text style={[styles.navText, styles.activeNavText]}>Categories</Text>
+          <Ionicons name="cart-outline" size={22} color={COLORS.muted} />
+          <Text style={styles.navText}>ตะกร้า</Text>
         </TouchableOpacity>
       </View>
 
-      {/* MODAL สินค้าในแบรนด์ */}
       <Modal
-        visible={detailModalVisible}
-        animationType="fade"
+        visible={Boolean(selectedGroup)}
+        animationType="slide"
         transparent
-        onRequestClose={() => setDetailModalVisible(false)}
+        onRequestClose={() => setSelectedGroup(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
+          <View style={styles.modal}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                Brand: {selectedBrand?.brandName} ({selectedBrand?.itemCount})
+                {selectedGroup?.categoryName}
               </Text>
-              <TouchableOpacity onPress={() => setDetailModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#E5E7F0" />
+              <TouchableOpacity onPress={() => setSelectedGroup(null)}>
+                <Ionicons name="close" size={24} color={COLORS.text} />
               </TouchableOpacity>
             </View>
-
-            <ScrollView style={{ padding: 16 }}>
-              {selectedBrand?.products.map((p) => (
+            <ScrollView contentContainerStyle={styles.modalContent}>
+              {selectedGroup?.products.map((product) => (
                 <TouchableOpacity
-                  key={p.id}
-                  style={styles.productRowCard}
-                  onPress={() => goToProductPage(p.productName)}
-                  activeOpacity={0.7}
+                  key={product.product_id}
+                  style={styles.productRow}
+                  onPress={() => goToProducts(product.product_name)}
                 >
-                  <Image
-                    source={{
-                      uri:
-                        p.image && p.image.startsWith("http")
-                          ? p.image
-                          : "https://images.unsplash.com/photo-1695048133142-1a20484d2569?q=80&w=600&auto=format&fit=crop",
-                    }}
-                    style={styles.productRowImage}
-                  />
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.productRowTitle}>{p.productName}</Text>
-                    <Text style={styles.productRowSub}>
-                      Stock: {p.stock ?? 0} | Category: {p.category || "-"}
+                  {product.image_url ? (
+                    <Image
+                      source={{ uri: product.image_url }}
+                      style={styles.productImage}
+                    />
+                  ) : (
+                    <View style={styles.productImageEmpty}>
+                      <Ionicons
+                        name="cube-outline"
+                        size={25}
+                        color={COLORS.primary}
+                      />
+                    </View>
+                  )}
+                  <View style={styles.productInfo}>
+                    <Text style={styles.productName}>
+                      {product.product_name}
                     </Text>
-                    <Text style={styles.productRowPrice}>
-                      ฿{Number(p.price ?? 0).toLocaleString()}
+                    <Text style={styles.productMeta}>
+                      เหลือ {product.stock_quantity} ชิ้น
+                    </Text>
+                    <Text style={styles.productPrice}>
+                      ฿{Number(product.price).toLocaleString()}
                     </Text>
                   </View>
-                  <Ionicons name="chevron-forward" size={18} color="#9CA6B8" />
                 </TouchableOpacity>
               ))}
             </ScrollView>
-
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setDetailModalVisible(false)}
-            >
-              <Text style={styles.closeBtnText}>Close</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -260,100 +201,94 @@ const formattedGroups: BrandGroup[] = Object.keys(groupsMap).map((key) => ({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#080A12" },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
+    height: 68,
+    paddingHorizontal: 20,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: "#111522",
+    justifyContent: "space-between",
+    backgroundColor: COLORS.card,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A3142",
+    borderBottomColor: COLORS.border,
   },
-  headerTitle: { fontSize: 20, fontWeight: "700", color: "#8B5CF6" },
-  refreshBtn: { padding: 4 },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  listContent: { padding: 16 },
-  brandCard: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#111522",
-    padding: 16,
-    borderRadius: 12,
+  headerTitle: { fontSize: 20, fontWeight: "900", color: COLORS.text },
+  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
+  list: { padding: 20, paddingBottom: 90 },
+  categoryCard: {
+    padding: 18,
     marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "#2A3142",
-  },
-  brandInfo: { gap: 4 },
-  brandNameText: { fontSize: 16, fontWeight: "700", color: "#E5E7F0" },
-  itemCountText: { fontSize: 13, color: "#8F99AA" },
-  arrowBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#241A3A",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  bottomNav: {
     flexDirection: "row",
-    backgroundColor: "#111522",
-    borderTopWidth: 1,
-    borderTopColor: "#2A3142",
-    paddingVertical: 8,
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: COLORS.card,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  categoryName: { fontSize: 16, fontWeight: "900", color: COLORS.text },
+  categoryCount: { marginTop: 5, fontSize: 12, color: COLORS.muted },
+  bottomNav: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 68,
+    flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
+    backgroundColor: COLORS.card,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
-  navItem: { flex: 1, alignItems: "center" },
-  navText: { marginTop: 3, fontSize: 12, color: "#8F99AA" },
-  activeNavText: { color: "#8B5CF6", fontWeight: "700" },
+  navItem: { alignItems: "center", gap: 3 },
+  navText: { fontSize: 12, color: COLORS.muted },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(45, 32, 37, 0.35)",
   },
-  modalContainer: {
-    width: "100%",
-    maxWidth: 500,
+  modal: {
     maxHeight: "85%",
-    backgroundColor: "#111522",
-    borderRadius: 16,
-    overflow: "hidden",
+    backgroundColor: COLORS.background,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
   },
   modalHeader: {
+    padding: 18,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    padding: 16,
+    backgroundColor: COLORS.card,
     borderBottomWidth: 1,
-    borderBottomColor: "#2A3142",
+    borderBottomColor: COLORS.border,
   },
-  modalTitle: { fontSize: 16, fontWeight: "700", color: "#E5E7F0" },
-  productRowCard: {
+  modalTitle: { fontSize: 18, fontWeight: "900", color: COLORS.text },
+  modalContent: { padding: 16 },
+  productRow: {
+    padding: 12,
+    marginBottom: 10,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#080A12",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    gap: 12,
+    backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: "#2A3142",
+    borderColor: COLORS.border,
   },
-  productRowImage: { width: 50, height: 50, borderRadius: 8, resizeMode: "contain" },
-  productRowTitle: { fontSize: 14, fontWeight: "700", color: "#E5E7F0" },
-  productRowSub: { fontSize: 12, color: "#8F99AA", marginTop: 2 },
-  productRowPrice: { fontSize: 14, fontWeight: "700", color: "#8B5CF6", marginTop: 2 },
-  closeBtn: {
-    margin: 16,
-    height: 42,
-    backgroundColor: "#8B5CF6",
-    borderRadius: 8,
-    justifyContent: "center",
+  productImage: { width: 64, height: 64, backgroundColor: "#FFF0F4" },
+  productImageEmpty: {
+    width: 64,
+    height: 64,
     alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFF0F4",
   },
-  closeBtnText: { color: "#FFFFFF", fontWeight: "700" },
+  productInfo: { flex: 1 },
+  productName: { fontSize: 14, fontWeight: "800", color: COLORS.text },
+  productMeta: { marginTop: 4, fontSize: 12, color: COLORS.muted },
+  productPrice: {
+    marginTop: 4,
+    fontSize: 15,
+    fontWeight: "900",
+    color: COLORS.primary,
+  },
 });

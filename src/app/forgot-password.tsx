@@ -48,7 +48,7 @@ const notify = (title: string, message?: string, onDismiss?: () => void) => {
     Alert.alert(
       title,
       message,
-      onDismiss ? [{ text: "OK", onPress: onDismiss }] : undefined
+      onDismiss ? [{ text: "OK", onPress: onDismiss }] : undefined,
     );
   }
 };
@@ -92,19 +92,19 @@ export default function ForgotPasswordScreen() {
         setOtpCode(data.demoOtp);
         notify(
           "รหัส OTP ของคุณ (โหมดเดโม่)",
-          `เนื่องจากยังไม่ได้เชื่อมต่ออีเมลจริง ระบบจึงแสดงรหัสให้ที่นี่แทน:\n\n${data.demoOtp}\n\n(กรอกให้อัตโนมัติแล้ว)`
+          `เนื่องจากยังไม่ได้เชื่อมต่ออีเมลจริง ระบบจึงแสดงรหัสให้ที่นี่แทน:\n\n${data.demoOtp}\n\n(กรอกให้อัตโนมัติแล้ว)`,
         );
       } else {
         notify(
           "ส่งรหัสยืนยันแล้ว",
-          "กรุณาตรวจสอบอีเมลของคุณเพื่อรับรหัส OTP สำหรับตั้งรหัสผ่านใหม่"
+          "กรุณาตรวจสอบอีเมลของคุณเพื่อรับรหัส OTP สำหรับตั้งรหัสผ่านใหม่",
         );
       }
       setStep("reset");
     } catch (error) {
       notify(
         "เกิดข้อผิดพลาด",
-        error instanceof Error ? error.message : "ไม่สามารถส่งรหัสยืนยันได้"
+        error instanceof Error ? error.message : "ไม่สามารถส่งรหัสยืนยันได้",
       );
     } finally {
       setLoading(false);
@@ -150,7 +150,7 @@ export default function ForgotPasswordScreen() {
     } catch (error) {
       notify(
         "เกิดข้อผิดพลาด",
-        error instanceof Error ? error.message : "ไม่สามารถตั้งรหัสผ่านใหม่ได้"
+        error instanceof Error ? error.message : "ไม่สามารถตั้งรหัสผ่านใหม่ได้",
       );
     } finally {
       setLoading(false);
@@ -171,7 +171,9 @@ export default function ForgotPasswordScreen() {
         >
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => (step === "reset" ? setStep("request") : router.back())}
+            onPress={() =>
+              step === "reset" ? setStep("request") : router.back()
+            }
           >
             <Ionicons name="arrow-back" size={20} color={COLORS.text} />
           </TouchableOpacity>
@@ -179,7 +181,11 @@ export default function ForgotPasswordScreen() {
           <View style={styles.brandBlock}>
             <View style={styles.logoCircle}>
               <Ionicons
-                name={step === "request" ? "key-outline" : "shield-checkmark-outline"}
+                name={
+                  step === "request"
+                    ? "key-outline"
+                    : "shield-checkmark-outline"
+                }
                 size={28}
                 color={COLORS.primary}
               />
@@ -207,7 +213,10 @@ export default function ForgotPasswordScreen() {
                 ]}
               />
               <View
-                style={[styles.stepDot, step === "reset" && styles.stepDotActive]}
+                style={[
+                  styles.stepDot,
+                  step === "reset" && styles.stepDotActive,
+                ]}
               >
                 <Text style={styles.stepDotText}>2</Text>
               </View>
@@ -218,7 +227,11 @@ export default function ForgotPasswordScreen() {
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>Email</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="mail-outline" size={18} color={COLORS.textSecondary} />
+                    <Ionicons
+                      name="mail-outline"
+                      size={18}
+                      color={COLORS.textSecondary}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="you@example.com"
@@ -239,7 +252,9 @@ export default function ForgotPasswordScreen() {
                   {loading ? (
                     <ActivityIndicator color="#FFFFFF" />
                   ) : (
-                    <Text style={styles.buttonText}>Send Verification Code</Text>
+                    <Text style={styles.buttonText}>
+                      Send Verification Code
+                    </Text>
                   )}
                 </TouchableOpacity>
               </>
@@ -248,7 +263,11 @@ export default function ForgotPasswordScreen() {
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>OTP Code</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="keypad-outline" size={18} color={COLORS.textSecondary} />
+                    <Ionicons
+                      name="keypad-outline"
+                      size={18}
+                      color={COLORS.textSecondary}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="Enter the 6-digit code"
@@ -259,14 +278,19 @@ export default function ForgotPasswordScreen() {
                     />
                   </View>
                   <Text style={styles.demoHint}>
-                    🧪 โหมดเดโม่: ยังไม่ได้เชื่อมต่ออีเมลจริง รหัสจะถูกกรอกให้อัตโนมัติจากขั้นตอนก่อนหน้า
+                    🧪 โหมดเดโม่: ยังไม่ได้เชื่อมต่ออีเมลจริง
+                    รหัสจะถูกกรอกให้อัตโนมัติจากขั้นตอนก่อนหน้า
                   </Text>
                 </View>
 
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>New Password</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="lock-closed-outline" size={18} color={COLORS.textSecondary} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={COLORS.textSecondary}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="At least 6 characters"
@@ -275,7 +299,9 @@ export default function ForgotPasswordScreen() {
                       onChangeText={setNewPassword}
                       secureTextEntry={!showPassword}
                     />
-                    <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>
+                    <TouchableOpacity
+                      onPress={() => setShowPassword((prev) => !prev)}
+                    >
                       <Ionicons
                         name={showPassword ? "eye-off-outline" : "eye-outline"}
                         size={18}
@@ -288,7 +314,11 @@ export default function ForgotPasswordScreen() {
                 <View style={styles.formGroup}>
                   <Text style={styles.label}>Confirm New Password</Text>
                   <View style={styles.inputWrapper}>
-                    <Ionicons name="lock-closed-outline" size={18} color={COLORS.textSecondary} />
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={18}
+                      color={COLORS.textSecondary}
+                    />
                     <TextInput
                       style={styles.input}
                       placeholder="Re-enter new password"
@@ -317,7 +347,9 @@ export default function ForgotPasswordScreen() {
                   onPress={handleRequestCode}
                   disabled={loading}
                 >
-                  <Text style={styles.resendLinkText}>Didn't get a code? Resend</Text>
+                  <Text style={styles.resendLinkText}>
+                    Didn't get a code? Resend
+                  </Text>
                 </TouchableOpacity>
               </>
             )}

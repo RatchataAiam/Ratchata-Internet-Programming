@@ -40,7 +40,9 @@ type Product = {
 };
 
 const notify = (title: string, message?: string) =>
-  Platform.OS === "web" ? window.alert(message ? `${title}\n\n${message}` : title) : Alert.alert(title, message);
+  Platform.OS === "web"
+    ? window.alert(message ? `${title}\n\n${message}` : title)
+    : Alert.alert(title, message);
 
 export default function DetailScreen() {
   const { id } = useLocalSearchParams();
@@ -51,6 +53,7 @@ export default function DetailScreen() {
   // สิทธิ์การใช้งานอ้างอิงจากผู้ใช้ที่ล็อกอินอยู่จริง (ไม่ใช่พารามิเตอร์ที่ส่งต่อกันมา)
   const isAdmin = user?.role === "admin";
 
+  // รายละเอียดสินค้าใช้ product_id จากตาราง Products
   const load = async () => {
     setLoading(true);
     try {
@@ -58,7 +61,10 @@ export default function DetailScreen() {
       if (!r.ok) throw new Error("ไม่พบสินค้า หรือโหลดข้อมูลไม่สำเร็จ");
       setProduct(await r.json());
     } catch (e) {
-      notify("เกิดข้อผิดพลาด", e instanceof Error ? e.message : "ไม่สามารถโหลดข้อมูลสินค้าได้");
+      notify(
+        "เกิดข้อผิดพลาด",
+        e instanceof Error ? e.message : "ไม่สามารถโหลดข้อมูลสินค้าได้",
+      );
     } finally {
       setLoading(false);
     }
@@ -82,7 +88,10 @@ export default function DetailScreen() {
         notify("สำเร็จ", "ลบสินค้าเรียบร้อยแล้ว");
         router.back();
       } catch (e) {
-        notify("เกิดข้อผิดพลาด", e instanceof Error ? e.message : "ไม่สามารถลบสินค้าได้");
+        notify(
+          "เกิดข้อผิดพลาด",
+          e instanceof Error ? e.message : "ไม่สามารถลบสินค้าได้",
+        );
       }
     };
     if (Platform.OS === "web") {
@@ -113,7 +122,11 @@ export default function DetailScreen() {
         </View>
       ) : !product ? (
         <View style={styles.center}>
-          <Ionicons name="cloud-offline-outline" size={32} color={COLORS.danger} />
+          <Ionicons
+            name="cloud-offline-outline"
+            size={32}
+            color={COLORS.danger}
+          />
           <Text style={styles.muted}>ไม่พบข้อมูลสินค้านี้</Text>
         </View>
       ) : (
@@ -127,28 +140,47 @@ export default function DetailScreen() {
           )}
 
           <View style={styles.content}>
-            {!!product.category && <Text style={styles.category}>{product.category}</Text>}
+            {!!product.category && (
+              <Text style={styles.category}>{product.category}</Text>
+            )}
             <Text style={styles.name}>{product.product_name}</Text>
-            <Text style={styles.price}>฿{Number(product.price).toLocaleString()}</Text>
-            <Text style={[styles.stock, { color: product.stock_quantity > 0 ? "#3E8F68" : COLORS.danger }]}>
-              {product.stock_quantity > 0 ? `เหลือ ${product.stock_quantity} ชิ้น` : "สินค้าหมด"}
+            <Text style={styles.price}>
+              ฿{Number(product.price).toLocaleString()}
+            </Text>
+            <Text
+              style={[
+                styles.stock,
+                {
+                  color: product.stock_quantity > 0 ? "#3E8F68" : COLORS.danger,
+                },
+              ]}
+            >
+              {product.stock_quantity > 0
+                ? `เหลือ ${product.stock_quantity} ชิ้น`
+                : "สินค้าหมด"}
             </Text>
 
             <Text style={styles.description}>
-              {product.description || "ยังไม่มีรายละเอียดเพิ่มเติมสำหรับสินค้านี้"}
+              {product.description ||
+                "ยังไม่มีรายละเอียดเพิ่มเติมสำหรับสินค้านี้"}
             </Text>
 
             {isAdmin && (
               <View style={styles.buttonGroup}>
                 <TouchableOpacity
                   style={styles.editButton}
-                  onPress={() => router.push({ pathname: "/manage-products" } as any)}
+                  onPress={() =>
+                    router.push({ pathname: "/manage-products" } as any)
+                  }
                 >
                   <Ionicons name="create-outline" size={18} color="#fff" />
                   <Text style={styles.buttonText}>Edit Product</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDelete}
+                >
                   <Ionicons name="trash-outline" size={18} color="#fff" />
                   <Text style={styles.buttonText}>Delete Product</Text>
                 </TouchableOpacity>
@@ -177,15 +209,41 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 18, fontWeight: "800", color: COLORS.text },
 
-  image: { width: "100%", height: 300, resizeMode: "contain", backgroundColor: COLORS.soft },
-  imageEmpty: { width: "100%", height: 300, backgroundColor: COLORS.soft, alignItems: "center", justifyContent: "center" },
+  image: {
+    width: "100%",
+    height: 300,
+    resizeMode: "contain",
+    backgroundColor: COLORS.soft,
+  },
+  imageEmpty: {
+    width: "100%",
+    height: 300,
+    backgroundColor: COLORS.soft,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
   content: { padding: 20 },
-  category: { fontSize: 12, fontWeight: "900", letterSpacing: 0.8, color: COLORS.primary },
+  category: {
+    fontSize: 12,
+    fontWeight: "900",
+    letterSpacing: 0.8,
+    color: COLORS.primary,
+  },
   name: { fontSize: 24, fontWeight: "800", color: COLORS.text, marginTop: 6 },
-  price: { marginTop: 12, fontSize: 28, fontWeight: "900", color: COLORS.primaryDark },
+  price: {
+    marginTop: 12,
+    fontSize: 28,
+    fontWeight: "900",
+    color: COLORS.primaryDark,
+  },
   stock: { marginTop: 4, fontSize: 13, fontWeight: "700" },
-  description: { marginTop: 20, lineHeight: 22, fontSize: 15, color: COLORS.textSecondary },
+  description: {
+    marginTop: 20,
+    lineHeight: 22,
+    fontSize: 15,
+    color: COLORS.textSecondary,
+  },
 
   buttonGroup: { flexDirection: "row", gap: 12, marginTop: 28 },
   editButton: {
